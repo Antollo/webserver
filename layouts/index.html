@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Starship battle website</title>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono&display=swap" rel="stylesheet">
+    <script>
+        window.module = {};
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/wankdanker/node-tableify/index.js"></script>
+    <script>
+        window.tableify = module.exports;
+    </script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        * {
+            font-family: 'Ubuntu Mono', monospace;
+            background-color: black;
+            color: white;
+            font-size: 16px;
+        }
+
+        a {
+            text-decoration-line: none;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        h2 {
+            font-size: 28px;
+        }
+
+        h1::after {
+            content: '';
+            display: inline-block;
+            background-color: white;
+            vertical-align: top;
+            width: 1ch;
+            height: 1em;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1.0;
+            }
+
+            50% {
+                opacity: 0.0;
+            }
+
+            100% {
+                opacity: 1.0;
+            }
+        }
+
+        .parent {
+            padding: 16px;
+            box-sizing: border-box;
+            height: 100%;
+            width: 100%;
+        }
+
+        .button {
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .big-button {
+            text-align: center;
+            font-size: 26px;
+            border: 2px solid white;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
+        .button:hover {
+            text-decoration-line: underline;
+        }
+
+        .button::before {
+            line-height: 16px;
+            display: inline-block;
+        }
+
+        .button[checked=true]::before {
+            content: '✓';
+        }
+
+        .button[checked=false]::before {
+            content: '✗';
+
+        }
+
+        #log {
+            margin-top: 32px;
+            overflow-x: auto;
+            overflow-y: auto;
+            width: 100%;
+            height: calc(70% - 32px);
+        }
+
+        .entity {
+            padding-top: 16px;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid white;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .pre-wrap {
+            white-space: pre-wrap;
+        }
+
+        *::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: white;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        button:focus {
+            outline: none;
+        }
+
+        input[type=text] {
+            border-radius: 0;
+            width: 256px;
+            padding: 2px;
+            border-top: 0;
+            border-right: 0;
+            border-left: 0;
+            border-bottom: 1.2px solid white;
+            min-height: 1em;
+            margin: 0 0 0 4px;
+        }
+
+        input[type=text]:focus {
+            background-color: white;
+            color: black;
+        }
+
+        #controls {
+            height: 30%;
+        }
+
+        #buttons {
+            display: flex;
+            flex-wrap: wrap;
+            height: 100%;
+            align-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="parent">
+        <div id="controls">
+            <div id="buttons">
+                <h1>Starship battle</h1>
+                <a class="button big-button" href="#spaceships-list">
+                    Spaceships list
+                </a>
+                <a class="button big-button" href="#ranking">
+                    Ranking
+                </a>
+                <a class="button big-button" href="#help">
+                    Help
+                </a>
+            </div>
+        </div>
+        <div id="log"></div>
+    </div>
+</body>
+<script>
+    (async function () {
+
+        let element = document.createElement('h1');
+        element.textContent = 'Spaceships list:';
+        element.id = 'spaceships-list';
+        document.getElementById('log').appendChild(element);
+
+
+        async function fetchJSON(url) {
+            return await fetch(url).then(res => { return res.json() });
+        }
+
+        const __dirname = 'https://cdn.jsdelivr.net/gh/Antollo/Starship-battle/src/Release';
+
+        for (spaceshipName of (await fetchJSON(__dirname + '/config.json')).spaceships) {
+            const spaceship = { shape: [], name: spaceshipName, ...(await fetchJSON(`${__dirname}/${spaceshipName}.json`)) };
+            const turretName = spaceship.turrets[0].type;
+            const turret = { type: 'turret', name: turretName, ...(await fetchJSON(`${__dirname}/${turretName}.json`)) };
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const width = 250;
+            const height = 100;
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+
+            const scale = window.devicePixelRatio;
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+
+            ctx.scale(scale, scale);
+
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'bevel'
+            ctx.translate(10, 30)
+            ctx.beginPath();
+            const m = 20;
+            ctx.moveTo(spaceship.points[0].x * m, spaceship.points[0].y * m);
+            for (i = 1; i < spaceship.points.length; i++) {
+                ctx.lineTo(spaceship.points[i].x * m, spaceship.points[i].y * m);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            spaceship.damagePerMinute = Math.round(spaceship.turrets.length * turret.damage * 60 / spaceship.reload);
+            spaceship.numberOfTurrets = spaceship.turrets.length;
+            delete spaceship.points;
+            delete turret.points;
+            delete turret.origin;
+            delete turret.bulletShape;
+            delete spaceship.turrets;
+
+            spaceship.turretType = turret;
+            const element = document.createElement('div');
+            element.innerHTML = `<div><h2>${spaceship.name}</h2>${tableify(spaceship)}</div>`;
+
+            element.querySelector('td table').parentElement.appendChild(canvas);
+            document.getElementById('log').appendChild(element)
+        }
+
+        element = document.createElement('h1');
+        element.textContent = 'Ranking:';
+        element.id = 'ranking';
+        document.getElementById('log').appendChild(element);
+
+        element = document.createElement('div');
+        let ranking = await fetchJSON('/api/results');
+        ranking = ranking.map(el => {
+            const date = new Date(null);
+            date.setSeconds(el.time);
+            return {
+                time: date.toISOString().substr(11, 8),
+                pilotName: el.pilotName,
+                shipType: el.shipType,
+                date: el.date
+            }
+        });
+        element.innerHTML = tableify(ranking);
+        document.getElementById('log').appendChild(element);
+
+        element = document.createElement('h1');
+        element.textContent = 'Help:';
+        element.id = 'help';
+        document.getElementById('log').appendChild(element);
+
+        element = document.createElement('div');
+        element.textContent = `Click 'Play game' in launcher to start the game.
+        Type 'create T-4A yourName' (where T-4A is spaceship name and yourName is pilot's name) and hit enter.
+        Then type 'create-bots' and attack them! Control the ship with W, A and D, aim with right mouse button
+        and fire with left mouse button! Use 'help' command to learn more (e.g. how to list all spaceships names).
+        Download link and more information here: `;
+        element.id = 'ranking';
+        document.getElementById('log').appendChild(element);
+
+        element = document.createElement('a');
+        element.textContent = 'github.com/Antollo/Starship-battle';
+        element.href = 'https://github.com/Antollo/Starship-battle';
+        element.style = 'text-decoration-line: underline;';
+        document.getElementById('log').appendChild(element);
+
+    })();
+</script>
+
+</html>
