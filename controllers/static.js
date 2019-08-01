@@ -9,4 +9,4 @@ router.get('*', function(_req, res) {
     res.sendFile(path.resolve('layouts/index.html'));
 });
 
-module.exports = router;help
+module.exports = router;
