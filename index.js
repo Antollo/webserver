@@ -6,6 +6,6 @@ app.use(bodyParser.json());
 app.use('/api/results', require('./controllers/api/results'));
 app.use(require('./controllers/static'));
 
-app.listen(3000, function() {
+app.listen(process.env.PORT || 3000, function() {
     console.log('server ok');
 });
