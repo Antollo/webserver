@@ -237,7 +237,7 @@
             return await fetch(url).then(res => { return res.json() });
         }
 
-        const dirname = window.location.origin;
+        const dirname = `${window.location.origin}/api/gamefiles`;
 
         for (spaceshipName of (await fetchJSON(`${dirname}/config.json`)).spaceships) {
             const spaceship = { shape: [], name: spaceshipName, ...(await fetchJSON(`${dirname}/${spaceshipName}.json`)) };
