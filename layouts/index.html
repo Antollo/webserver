@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="black">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Starship battle website</title>
     <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@
         }
 
         h2 {
-            font-size: 28px;
+            font-size: 26px;
         }
 
         h1::after {
@@ -81,8 +81,8 @@
             text-align: center;
             font-size: 26px;
             border: 2px solid white;
-            padding-top: 4px;
-            padding-bottom: 4px;
+            padding-top: 2px;
+            padding-bottom: 2px;
         }
 
         .button:hover {
@@ -105,10 +105,10 @@
 
         #log {
             margin-top: 32px;
+            padding-bottom: 16px;
             overflow-x: auto;
             overflow-y: auto;
             width: 100%;
-            height: calc(70% - 32px);
         }
 
         .entity {
@@ -137,13 +137,37 @@
             white-space: pre-wrap;
         }
 
-        *::-webkit-scrollbar {
-            width: 12px;
-        }
-
         *::-webkit-scrollbar-thumb {
             background-color: white;
         }
+
+        @media (min-width: 640px) {
+            *::-webkit-scrollbar {
+                width: 12px;
+            }
+
+            #controls {
+                height: 30%;
+            }
+
+            #log {
+                height: calc(70% - 48px);
+            }
+        }
+
+
+        *::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        #controls {
+            height: 40%;
+        }
+
+        #log {
+            height: calc(60% - 48px);
+        }
+
 
         input:focus,
         select:focus,
@@ -169,9 +193,6 @@
             color: black;
         }
 
-        #controls {
-            height: 30%;
-        }
 
         #buttons {
             display: flex;
@@ -214,20 +235,20 @@
             return await fetch(url).then(res => { return res.json() });
         }
 
-        const __dirname = 'https://cdn.jsdelivr.net/gh/Antollo/Starship-battle/src/Release';
+        const dirname = 'https://starship-battle.herokuapp.com/api/gamefiles';
 
-        for (spaceshipName of (await fetchJSON(__dirname + '/config.json')).spaceships) {
-            const spaceship = { shape: [], name: spaceshipName, ...(await fetchJSON(`${__dirname}/${spaceshipName}.json`)) };
+        for (spaceshipName of (await fetchJSON(`${dirname}/config.json`)).spaceships) {
+            const spaceship = { shape: [], name: spaceshipName, ...(await fetchJSON(`${dirname}/${spaceshipName}.json`)) };
             const turretName = spaceship.turrets[0].type;
-            const turret = { type: 'turret', name: turretName, ...(await fetchJSON(`${__dirname}/${turretName}.json`)) };
+            const turret = { name: turretName, ...(await fetchJSON(`${dirname}/${turretName}.json`)) };
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
             const width = 250;
             const height = 100;
-            canvas.style.width = width + "px";
-            canvas.style.height = height + "px";
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
 
             const scale = window.devicePixelRatio;
             canvas.width = width * scale;
@@ -238,7 +259,7 @@
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 2;
             ctx.lineJoin = 'bevel'
-            ctx.translate(10, 30)
+            ctx.translate(6, 30)
             ctx.beginPath();
             const m = 20;
             ctx.moveTo(spaceship.points[0].x * m, spaceship.points[0].y * m);
@@ -294,7 +315,7 @@
         Type 'create T-4A yourName' (where T-4A is spaceship name and yourName is pilot's name) and hit enter.
         Then type 'create-bots' and attack them! Control the ship with W, A and D, aim with right mouse button
         and fire with left mouse button! Use 'help' command to learn more (e.g. how to list all spaceships names).
-        Download link and more information here: `;
+        Download link and more information are available here: `;
         element.id = 'ranking';
         document.getElementById('log').appendChild(element);
 

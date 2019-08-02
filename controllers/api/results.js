@@ -1,6 +1,6 @@
-var Result = require('../../models/result');
+const Result = require('../../models/result');
 
-var router = require('express').Router();
+const router = require('express').Router();
 
 router.get('/', function (_req, res, next) {
     Result.find().sort('-time').limit(200).lean().exec(function (err, results) {
