@@ -156,16 +156,18 @@
         }
 
 
-        *::-webkit-scrollbar {
-            width: 2px;
-        }
+        @media (max-width: 640px) {
+            *::-webkit-scrollbar {
+                width: 2px;
+            }
 
-        #controls {
-            height: 40%;
-        }
+            #controls {
+                height: 40%;
+            }
 
-        #log {
-            height: calc(60% - 48px);
+            #log {
+                height: calc(60% - 48px);
+            }
         }
 
 
