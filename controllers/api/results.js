@@ -2,7 +2,7 @@ const Result = require('../../models/result');
 
 const router = require('express').Router();
 
-router.get('/', function (_req, res, next) {
+router.get('/', function (req, res, next) {
     Result.find().sort('-time').limit(200).lean().exec(function (err, results) {
         if (err) {
             return next(err);
@@ -17,7 +17,8 @@ router.get('/', function (_req, res, next) {
 router.post('/', function (req, res, next) {
     if (req.body.secret != process.env.STBT_SECRET)
     {
-        res.send(401);
+        console.log(req.body);
+        res.sendStatus(401);
         return;
     }
     const result = new Result({
@@ -27,7 +28,9 @@ router.post('/', function (req, res, next) {
     });
     result.save(function (err, result) {
         if (err) {
-            return next(err);
+            console.error(err.message);
+            res.sendStatus(418)
+            return;
         }
         res.status(201).json(result);
     });
