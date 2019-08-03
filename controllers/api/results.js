@@ -1,6 +1,6 @@
 const Result = require('../../models/result');
-
 const router = require('express').Router();
+const sanitizer = require('sanitizer');
 
 router.get('/', function (req, res, next) {
     Result.find().sort('-time').limit(200).lean().exec(function (err, results) {
@@ -23,7 +23,7 @@ router.post('/', function (req, res, next) {
     }
     const result = new Result({
         time: req.body.time,
-        pilotName: req.body.pilotName,
+        pilotName: sanitizer.escape(req.body.pilotName),
         shipType: req.body.shipType
     });
     result.save(function (err, result) {
