@@ -1,6 +1,7 @@
 const Result = require('../../models/result');
 const router = require('express').Router();
 const sanitizer = require('sanitizer');
+const starts = new Map();
 
 router.get('/', function (req, res, next) {
     Result.find().sort('-time').limit(200).lean().exec(function (err, results) {
@@ -14,26 +15,40 @@ router.get('/', function (req, res, next) {
     });
 });
 
-router.post('/', function (req, res, next) {
-    if (req.body.secret != process.env.STBT_SECRET)
+router.post('/end', function (req, res, next) {
+    console.log(req.headers);
+    console.log(req.body);
+    if ((req.headers['user-agent'] != process.env.STBT_USER_AGENT) 
+    || (req.body.secret != process.env.STBT_SECRET)
+    || (req.body.hash['sha256'] != process.env.STBT_HASH))
     {
-        console.log(req.body);
         res.sendStatus(401);
         return;
     }
     const result = new Result({
-        time: req.body.time,
+        time: Math.floor((Date.now() - starts.get(sanitizer.escape(req.body.pilotName))) / 1000),
         pilotName: sanitizer.escape(req.body.pilotName),
         shipType: req.body.shipType
     });
     result.save(function (err, result) {
         if (err) {
             console.error(err.message);
-            res.sendStatus(418)
+            res.sendStatus(400);
             return;
         }
-        res.status(201).json(result);
+        res.sendStatus(201);
     });
+});
+
+router.post('/start', function (req, res, next) {
+    if ((req.headers['user-agent'] != process.env.STBT_USER_AGENT) 
+    || (req.body.secret != process.env.STBT_SECRET))
+    {
+        res.sendStatus(401);
+        return;
+    }
+    starts.set(sanitizer.escape(req.body.pilotName), Date.now());
+    res.sendStatus(201);
 });
 
 module.exports = router;
