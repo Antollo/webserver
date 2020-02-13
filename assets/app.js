@@ -10,7 +10,29 @@
         return await fetch(url).then(res => { return res.json() });
     }
 
+    function draw(ctx, points) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x * ctxScale, points[0].y * ctxScale);
+        for (i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x * ctxScale, points[i].y * ctxScale);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    }
+    function area(points) {
+        let area = 0;
+        let j = points.length - 1;
+
+        for (i = 0; i < points.length; i++) {
+            area += (points[j].x + points[i].x) * (points[j].y - points[i].y);
+            j = i;
+        }
+        return -area / 2;
+    }
+
     const dirname = `${window.location.origin}/api/gamefiles`;
+
+    const ctxScale = 20;
 
     const promises = (await fetchJSON(`${dirname}/config.json`)).spaceships.map(async (spaceshipName) => {
         const spaceship = { shape: [], name: spaceshipName, ...(await fetchJSON(`${dirname}/${spaceshipName}.json`)) };
@@ -20,8 +42,8 @@
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        const width = 250;
-        const height = 100;
+        const width = (Math.max(...spaceship.points.map(p => p.x)) - Math.min(...spaceship.points.map(p => p.x))) * ctxScale + 30;
+        const height = (Math.max(...spaceship.points.map(p => p.y)) - Math.min(...spaceship.points.map(p => p.y))) * ctxScale + 10;
         canvas.style.width = width + 'px';
         canvas.style.height = height + 'px';
 
@@ -32,29 +54,40 @@
         ctx.scale(scale, scale);
 
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.lineJoin = 'bevel'
-        ctx.translate(6, 30)
-        ctx.beginPath();
-        const m = 20;
-        ctx.moveTo(spaceship.points[0].x * m, spaceship.points[0].y * m);
-        for (i = 1; i < spaceship.points.length; i++) {
-            ctx.lineTo(spaceship.points[i].x * m, spaceship.points[i].y * m);
-        }
-        ctx.closePath();
-        ctx.stroke();
+        ctx.translate(1, 5);
 
+        const m = {
+            x: Math.min(...spaceship.points.map(p => p.x)),
+            y: Math.min(...spaceship.points.map(p => p.y))
+        };
+        draw(ctx, spaceship.points.map(p => { return { x: p.x - m.x, y: p.y - m.y } }));
+
+        const c = {
+            x: turret.points.reduce((a, b) => a + b.x, 0) / turret.points.length + m.x,
+            y: turret.points.reduce((a, b) => a + b.y, 0) / turret.points.length + m.y
+        };
+        spaceship.turrets.forEach(t => draw(ctx, turret.points.map((p) => { return { x: p.x + t.x - c.x, y: p.y + t.y - c.y } })));
+
+        spaceship.mass = Math.round(area(spaceship.points) * spaceship.density);
         spaceship.damagePerMinute = Math.round(spaceship.turrets.length * turret.damage * 60 / spaceship.reload);
         spaceship.numberOfTurrets = spaceship.turrets.length;
+
         delete spaceship.points;
         delete turret.points;
         delete turret.origin;
         delete turret.bulletShape;
         delete spaceship.turrets;
+        delete spaceship.name;
+        delete spaceship.friction;
+        delete spaceship.density;
+        delete spaceship.linearDamping;
+        delete spaceship.angularDamping;
 
         spaceship.turretType = turret;
         const element = document.createElement('div');
-        element.innerHTML = `<div><h2>${spaceship.name}</h2>${tableify(spaceship)}</div>`;
+        element.innerHTML = `<div><h2>${spaceshipName}</h2>${tableify(spaceship)}</div>`;
 
         element.querySelector('td table').parentElement.appendChild(canvas);
         document.getElementById('log').appendChild(element)
@@ -77,7 +110,9 @@
                 time: date.toISOString().substr(11, 8),
                 pilotName: el.pilotName,
                 shipType: el.shipType,
-                date: el.date
+                date: new Date(el.date).toLocaleDateString(undefined,
+                    { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' }
+                )
             }
         });
         rankingElement.innerHTML = tableify(ranking);
