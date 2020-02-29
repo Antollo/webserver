@@ -83,6 +83,8 @@
         delete turret.origin;
         delete turret.bulletShape;
         delete spaceship.turrets;
+        if (spaceship.shields)
+            spaceship.shields = 'yes';
         delete spaceship.name;
         delete spaceship.friction;
         delete spaceship.density;
