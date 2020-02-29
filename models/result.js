@@ -11,7 +11,7 @@ const Result = db.model('Result', {
     },
     shipType: {
         type: String,
-        enum: ['D', 'D+', 'T-3', 'T-4', 'T-4A', 'V3', 'V7'],
+        enum: ['D', 'D+', 'T-3', 'T-4', 'T-4A', 'V3', 'V7', 'HAD', 'V7L', 'A10'],
         required: true
     },
     time: {

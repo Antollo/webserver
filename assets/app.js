@@ -71,7 +71,11 @@
         spaceship.turrets.forEach(t => draw(ctx, turret.points.map((p) => { return { x: p.x + t.x - c.x, y: p.y + t.y - c.y } })));
 
         spaceship.mass = Math.round(area(spaceship.points) * spaceship.density);
-        spaceship.damagePerMinute = Math.round(spaceship.turrets.length * turret.damage * 60 / spaceship.reload);
+        spaceship.damagePerMinute = Math.round(spaceship.turrets.length * turret.damage * 60 * spaceship.reload.length / spaceship.reload.reduce((a, b) => a + b));
+        spaceship.reload = spaceship.reload.reduce((a, b) => `${a} ${b}`, '');
+        const duplicates = /\b(\d+\.?\d*)(\s+\1)+\b/g.exec(spaceship.reload);
+        if (duplicates)
+            spaceship.reload = spaceship.reload.replace(duplicates[0], `${duplicates[1]}x${(duplicates[0].match(new RegExp(duplicates[1], 'g')) || []).length}`);
         spaceship.numberOfTurrets = spaceship.turrets.length;
 
         delete spaceship.points;
