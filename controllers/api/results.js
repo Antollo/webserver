@@ -4,7 +4,7 @@ const sanitizer = require('sanitizer');
 const starts = new Map();
 
 router.get('/', function (req, res, next) {
-    Result.find().sort('-time').limit(200).lean().exec(function (err, results) {
+    Result.find().sort('-damageDealt').limit(200).lean().exec(function (err, results) {
         if (err) {
             return next(err);
         }
@@ -28,6 +28,7 @@ router.post('/end', function (req, res, next) {
     const result = new Result({
         time: Math.floor((Date.now() - starts.get(sanitizer.escape(req.body.pilotName))) / 1000),
         pilotName: sanitizer.escape(req.body.pilotName),
+        damageDealt: sanitizer.escape(req.body.damageDealt),
         shipType: req.body.shipType
     });
     result.save(function (err, result) {

@@ -1,5 +1,5 @@
 const db = require('../db');
-const Result = db.model('Result', {
+const Result = db.model('ResultWithDamage', {
     pilotName: {
         type: String,
         validate: {
@@ -7,6 +7,11 @@ const Result = db.model('Result', {
                 return /^[^\s]+$/.test(v);
             }
         },
+        required: true
+    },
+    damageDealt: {
+        type: Number,
+        min: 0,
         required: true
     },
     shipType: {

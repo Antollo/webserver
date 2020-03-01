@@ -113,6 +113,7 @@
             const date = new Date(null);
             date.setSeconds(el.time);
             return {
+                damageDealt: el.damageDealt,
                 time: date.toISOString().substr(11, 8),
                 pilotName: el.pilotName,
                 shipType: el.shipType,
